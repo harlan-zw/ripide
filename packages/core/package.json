@@ -46,7 +46,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
   },
   "scripts": {
     "build": "obuild",
@@ -60,7 +60,7 @@
     "oxc-parser": "^0.155.0",
     "oxc-walker": "^1.1.1",
     "picomatch": "^4.0.7",
-    "typescript-native": "npm:typescript@7.1.0-dev.20260905.1"
+    "typescript-native": "npm:typescript@7.1.0-beta"
   },
   "devDependencies": {
     "ripide-tsrx": "workspace:*"

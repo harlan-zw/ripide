@@ -184,12 +184,11 @@ export async function runMove(symbol: string, fromPath: string, toPath: string, 
       const scriptChanges = changes.filter(c => !isExtensionPath(c.path, engine))
       const files = verifyScope(verifyMode, cwd, [fromAbs, toAbs, ...candidatePaths], scriptChanges.map(c => c.path), engine)
       const verified = await timedAsync(profile, 'verify', () => findRegressions(server, scriptChanges, files, verification.typescript))
-      // Native module resolution reads disk, so a new directory cannot resolve yet.
-      // Ignore only changed consumers pointing at this planned destination.
+      // Nuxt alias metadata can exist outside the selected compiler config.
       const consumers = new Set(scriptChanges.filter(change => change.path !== toAbs).map(change => change.path))
       const kept = verified.filter(regression => !consumers.has(regression.file)
-        || (!isUnresolvedMoveTarget(regression, toAbs) && !(regression.code === 2307
-          && adapter?.isPlannedImportTarget?.(cwd, regression.file, /Cannot find module '([^']+)'/.exec(regression.message)?.[1] ?? '', toAbs))))
+        || !(regression.code === 2307
+          && adapter?.isPlannedImportTarget?.(cwd, regression.file, /Cannot find module '([^']+)'/.exec(regression.message)?.[1] ?? '', toAbs)))
       verification.ignore('typescript', verified.length - kept.length)
       regressions.push(...kept)
     }
@@ -207,17 +206,6 @@ export async function runMove(symbol: string, fromPath: string, toPath: string, 
   finally {
     server.dispose()
   }
-}
-
-function isUnresolvedMoveTarget(regression: Regression, toAbs: string): boolean {
-  if (regression.code !== 2307)
-    return false
-  const specifier = /Cannot find module '([^']+)'/.exec(regression.message)?.[1]
-  if (!specifier?.startsWith('.'))
-    return false
-  const moduleExtension = /\.(?:tsx?|jsx?|mts|cts|mjs|cjs)$/
-  const base = resolve(dirname(regression.file), specifier).replace(moduleExtension, '')
-  return base === toAbs.replace(moduleExtension, '')
 }
 
 function findMovableExport(program: any, symbol: string): TopLevelDeclaration | null {

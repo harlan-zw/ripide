@@ -5,6 +5,7 @@ export default defineBuildConfig({
     {
       type: 'bundle',
       input: ['./src/index.ts', './src/adapter.ts'],
+      rolldown: { transform: { target: 'node24' } },
     },
   ],
 })

@@ -38,7 +38,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
   },
   "scripts": {
     "build": "obuild",
@@ -49,10 +49,10 @@
   },
   "dependencies": {
     "@typescript/typescript6": "^6.0.2",
-    "@volar/language-service": "^2.4.28",
-    "@volar/typescript": "^2.4.28",
+    "@volar/language-service": "2.4.30",
+    "@volar/typescript": "2.4.30",
     "@vue/compiler-sfc": "^3.5.44",
-    "@vue/language-core": "^3.3.13",
+    "@vue/language-core": "^3.3.14",
     "html-entities": "^2.6.0",
     "oxc-parser": "^0.155.0",
     "oxc-walker": "^1.1.1",
@@ -63,7 +63,7 @@
     "vscode-uri": "^3.2.0"
   },
   "devDependencies": {
-    "@vue/language-service": "^3.3.13",
+    "@vue/language-service": "^3.3.14",
     "ripide-api": "workspace:*"
   }
 }

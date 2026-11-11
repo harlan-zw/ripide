@@ -2,7 +2,7 @@
 
 This optional package adds authored-source parsing and a native TypeScript content-mapper bridge for Octane `.tsrx` files. Plain TypeScript and Vue keep RipIDE's existing compiler. TSRX semantic operations use this package's pinned native TypeScript build.
 
-Requires Node 22.22.2 or newer. Install the optional adapter in the consumer project, keeping its existing Octane version:
+Requires Node 24 or newer. Install the optional adapter in the consumer project, keeping its existing Octane version:
 
 ```sh
 bun add --dev ripide ripide-tsrx @tsrx/content-mapper

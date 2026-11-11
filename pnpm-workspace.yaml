@@ -1,14 +1,4 @@
 minimumReleaseAgeExcludePrune: true
-minimumReleaseAgeExclude:
-  - '@typescript/typescript-darwin-arm64@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-darwin-x64@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-linux-arm64@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-linux-arm@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-linux-x64@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-win32-arm64@7.1.0-dev.20260905.1'
-  - '@typescript/typescript-win32-x64@7.1.0-dev.20260905.1'
-  - typescript@7.1.0-dev.20260905.1
-
 trustPolicy: no-downgrade
 shellEmulator: true
 
@@ -19,6 +9,10 @@ overrides:
   # Keep the fixture compiler on the current semver package.
   '@babel/core@7>semver': ^7.7.4
   '@babel/helper-compilation-targets@7>semver': ^7.7.4
+  # Vue 3.3.14 uses this exact Volar protocol across its plugins.
+  '@volar/language-core': 2.4.30
+  '@volar/language-service': 2.4.30
+  '@volar/typescript': 2.4.30
   # Fix GHSA-238p-pmpm-9mq7 in Markdown linting's transitive math renderer.
   micromark-extension-math>katex: ^0.19.0
   # Version 0.0.71 lacks the provenance supplied with 0.0.70.

@@ -34,22 +34,13 @@ export async function findExtensionRegressions(cwd: string, changes: FileChange[
 }
 
 /**
- * Diagnostics-based regression check against the native TypeScript server.
- * Opens every change with its `before` text (so files that do not exist on
- * disk yet are visible), pulls errors for `files`, pushes each change's
- * `after` text as an in-memory overlay, pulls again, and reports diagnostics
- * that do not match an unchanged baseline source range. Nothing touches disk.
+ * Compare native compiler snapshots of the original and proposed source.
+ * Files that do not exist on disk are supplied through filesystem layers.
+ * The live language server and files on disk stay unchanged.
  */
 export async function findRegressions(server: TsServer, changes: FileChange[], files: string[], onChecked?: DiagnosticRecorder): Promise<Regression[]> {
   const scope = [...new Set([...files, ...changes.map(c => c.path)])]
-  for (const change of changes)
-    server.open(change.path, change.before)
-  const before = await server.diagnostics(scope)
-
-  for (const change of changes)
-    server.open(change.path, change.after)
-
-  const after = await server.diagnostics(scope)
+  const { before, after } = await server.compareDiagnostics(changes, scope)
   const out = diagnosticRegressions(before, after, changes)
   onChecked?.({ files: scope.length, newErrors: out.length })
   return out

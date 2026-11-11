@@ -2,11 +2,11 @@
 name: ripast
 description: "AST refactors: renames, moves, imports, CSS classes, and CSS custom properties in TS/JS/Vue."
 license: MIT
-compatibility: "Requires the ripide CLI, Node.js 22.13+, and shell access to the target project."
+compatibility: "Requires the ripide CLI, Node.js 24+, and shell access to the target project."
 ---
 
 Use RipIDE for mechanical refactors across TS, JS, JSX, and Vue files.
-Run from the project root with Node 22.13+. Follow repository worktree and approval rules; keep unrelated work separate.
+Run from the project root with Node 24+. Follow repository worktree and approval rules; keep unrelated work separate.
 Ripgrep is optional. If it is missing, Git discovers tracked and untracked files, including local edits.
 Use direct edits for small local changes, prose, strings, and comments.
 During architecture work, design contracts with direct edits. Use RipIDE for the supported mechanical steps.
