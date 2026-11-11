@@ -115,7 +115,7 @@ export async function runDelete(symbol: string, fromPath: string, opts: DeleteOp
         const { line, col } = posToLineCol(source, module.start)
         const location = `${relative(cwd, path)}:${line}:${col}`
         if (typeof module.value !== 'string')
-          throw new Error(`ripide delete: cannot resolve a dynamic import at ${location}. Use a resolvable named import first.`)
+          throw new TypeError(`ripide delete: cannot resolve a dynamic import at ${location}. Use a resolvable named import first.`)
         const importText = `import * as __RipIDEDynamic from ${script.slice(module.start, module.end)}`
         const access = `__RipIDEDynamic.${symbol}`
         const probe = `${importText}\n${access};\ntype __RipIDEDynamicType = ${access};`

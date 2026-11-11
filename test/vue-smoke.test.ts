@@ -1,9 +1,20 @@
 import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
+import ts from 'typescript'
 import { it } from 'vitest'
 import { URI } from 'vscode-uri'
 import { createVueService, workspaceEditToChanges } from '../packages/vue/src/service.ts'
 import { makeFixture } from './helpers.ts'
+
+it('typechecks the Vue and TypeScript language service integration', () => {
+  const root = resolve(import.meta.dirname, '..')
+  const config = ts.readConfigFile(resolve(root, 'tsconfig.json'), ts.sys.readFile)
+  assert.equal(config.error, undefined)
+  const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root)
+  const program = ts.createProgram([resolve(root, 'packages/vue/src/service.ts')], parsed.options)
+  const diagnostics = ts.getPreEmitDiagnostics(program)
+  assert.deepEqual(diagnostics.map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')), [])
+})
 
 it('volar service can rename a symbol used in a vue file', async () => {
   const fx = makeFixture({

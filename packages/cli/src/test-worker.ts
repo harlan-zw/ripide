@@ -134,7 +134,7 @@ async function execute(request: ResolvedInlineTestRequest): Promise<InlineTestRe
           return { extends: path, plugins: [plugin], test: { name: projectNames.get(path) } }
         }
         if (typeof entry === 'function' || entry instanceof Promise)
-          throw new Error('Pass a project configuration file with --config for computed projects.')
+          throw new TypeError('Pass a project configuration file with --config for computed projects.')
         return { ...entry, plugins: [...entry.plugins ?? [], plugin] }
       })
     },

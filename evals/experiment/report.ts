@@ -42,7 +42,7 @@ export function parseUsage(jsonl: string, cutoff: string, namespace = ''): Resul
   try {
     const boundary = Date.parse(cutoff)
     if (!Number.isFinite(boundary))
-      throw new Error('Usage cutoff requires a valid timestamp.')
+      throw new TypeError('Usage cutoff requires a valid timestamp.')
     const rows = new Map<string, {
       tokens: Tokens
       at: string | null
@@ -69,7 +69,7 @@ export function parseUsage(jsonl: string, cutoff: string, namespace = ''): Resul
         continue
       if (event.type === 'provider_charge') {
         if (typeof event.currency !== 'string' || typeof event.receiptId !== 'string')
-          throw new Error('Provider charge requires a currency and receipt.')
+          throw new TypeError('Provider charge requires a currency and receipt.')
         const receipt = { amount: number(event.amount), currency: event.currency, id: event.receiptId }
         const prior = receiptMap.get(receipt.id)
         if (prior && (prior.amount !== receipt.amount || prior.currency !== receipt.currency))

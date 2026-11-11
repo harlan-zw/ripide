@@ -106,7 +106,7 @@ function integer(value: unknown, minimum = 0): number {
 }
 function array(value: unknown): unknown[] {
   if (!Array.isArray(value))
-    throw new Error('Expected an array.')
+    throw new TypeError('Expected an array.')
   return value
 }
 function choice<T extends string>(value: unknown, choices: readonly T[]): T {
@@ -171,7 +171,7 @@ function task(raw: unknown): Task {
     qualityGates: array(row.qualityGates).map((raw) => {
       const g = object(raw)
       if (typeof g.required !== 'boolean')
-        throw new Error('Declare whether a quality gate is required.')
+        throw new TypeError('Declare whether a quality gate is required.')
       return { id: text(g.id), command: command(g.command), required: g.required }
     }),
   }
@@ -211,7 +211,7 @@ export function parseManifest(raw: unknown): Result<Manifest> {
         const source = object(raw)
         const cutoff = text(source.cutoff)
         if (!Number.isFinite(Date.parse(cutoff)))
-          throw new Error('Usage import cutoff must be valid.')
+          throw new TypeError('Usage import cutoff must be valid.')
         return { path: text(source.path), cutoff, role: choice(source.role, ['arm', 'controller']), phase: choice(source.phase, ['setup', 'discovery', 'architecture', 'mechanical', 'verification', 'implementation', 'commit', 'publication']), task: text(source.task), mode: choice(source.mode, modes), repeat: integer(source.repeat), attempt: integer(source.attempt) }
       }),
       tasks: array(row.tasks).map(task),
