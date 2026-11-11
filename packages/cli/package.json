@@ -54,7 +54,7 @@
     "skills"
   ],
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
   },
   "scripts": {
     "build": "obuild",
