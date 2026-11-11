@@ -1,4 +1,5 @@
 import type { ChildProcessWithoutNullStreams } from 'node:child_process'
+import type { FileChange } from './util.ts'
 import { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
@@ -6,10 +7,12 @@ import { createRequire } from 'node:module'
 import { basename, dirname, join, relative, resolve } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { API } from 'typescript-native/async'
+import { snapshotDiagnostics } from './snapshot-diagnostics.ts'
 import { resolveTsrxModule } from './tsrx.ts'
 import { findFiles, posToLineCol } from './util.ts'
 
-// Client for the native TypeScript language server (TypeScript 7+, `tsc --lsp`).
+// Client for the native TypeScript language server (TypeScript 7.1+, `tsc --lsp`).
 // Semantics (rename, references, definitions, diagnostics, file renames) come
 // from the server. ripide owns candidate discovery, text edits, diffing, and
 // verification policy.
@@ -63,6 +66,8 @@ export interface TsServer {
   willRenameFile: (oldPath: string, newPath: string) => Promise<Map<string, LspTextEdit[]>>
   /** Pull error diagnostics for `paths`. Files not yet open are opened with their on-disk text. */
   diagnostics: (paths: string[]) => Promise<Map<string, LspDiagnostic[]>>
+  /** Compare proposed edits in disposable snapshots. The live document state stays unchanged. */
+  compareDiagnostics: (changes: FileChange[], paths: string[]) => Promise<{ before: Map<string, LspDiagnostic[]>, after: Map<string, LspDiagnostic[]> }>
   /** Open `path` with `text` (defaults to disk). Re-opening with new text updates the document. */
   open: (path: string, text?: string) => void
   /** Current text the server sees for `path`: the overlay if open, else disk. */
@@ -75,7 +80,7 @@ export interface TsServerOptions {
   binary?: string
   /** Arguments for an explicitly supplied server executable. */
   args?: string[]
-  /** Maximum wait for each request, including initialization. Defaults to 30 seconds. */
+  /** Maximum wait per LSP request or snapshot comparison. Defaults to 30 seconds. */
   requestTimeoutMs?: number
   /** Cancels all work and terminates this operation-owned server. */
   signal?: AbortSignal
@@ -205,6 +210,36 @@ export async function startTsServer(cwd: string, opts: TsServerOptions = {}): Pr
         },
       })
       write({ jsonrpc: '2.0', id, method, params })
+    })
+  }
+
+  const apiRequest = <T>(method: string, work: () => Promise<T>): Promise<T> => {
+    if (terminalError)
+      return Promise.reject(terminalError)
+    const id = ++seq
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        stop(new Error(`TypeScript request deadline exceeded: ${method} (${requestTimeoutMs}ms)`))
+      }, requestTimeoutMs)
+      pending.set(id, {
+        resolve(value) {
+          clearTimeout(timer)
+          resolve(value)
+        },
+        reject(error) {
+          clearTimeout(timer)
+          reject(error)
+        },
+      })
+      work().then((value) => {
+        const entry = pending.get(id)
+        pending.delete(id)
+        entry?.resolve(value)
+      }, (error: Error) => {
+        const entry = pending.get(id)
+        pending.delete(id)
+        entry?.reject(error)
+      })
     })
   }
 
@@ -455,6 +490,15 @@ export async function startTsServer(cwd: string, opts: TsServerOptions = {}): Pr
         out.set(path, items)
       }))
       return out
+    },
+    async compareDiagnostics(changes, paths) {
+      const session = await request('custom/initializeAPISession', {})
+      if (typeof session?.pipe !== 'string' || !session.pipe)
+        throw new Error('ripide: TypeScript 7.1 did not provide a compiler API connection.')
+      return apiRequest('snapshot diagnostics', async () => {
+        await using api = await API.fromLSPConnection({ pipe: session.pipe })
+        return await snapshotDiagnostics(api, changes, paths)
+      })
     },
     open,
     textOf,

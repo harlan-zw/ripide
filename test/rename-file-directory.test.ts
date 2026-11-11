@@ -45,7 +45,7 @@ it.each(['touched', 'project'] as const)('verifies an aliased rename into a new 
   }
 })
 
-it.each(['touched', 'project'] as const)('keeps unresolved dependencies in the moved file with %s scope', async (verify) => {
+it.each(['touched', 'project'] as const)('reports a circular re-export created by the destination with %s scope', async (verify) => {
   const fx = makeFixture({
     'tsconfig.json': JSON.stringify({
       compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'bundler', paths: { '@/*': ['./src/*'] }, noEmit: true },
@@ -58,8 +58,8 @@ it.each(['touched', 'project'] as const)('keeps unresolved dependencies in the m
     const result = await runRenameFile('src/Counter.ts', 'src/components/Count.ts', { ...{ cwd: fx.dir, verifyMode: typeof verify === 'boolean' ? verify ? 'touched' : 'none' : verify }, engine: vueServices() })
     expect(result.regressions.map(({ file, code, message }) => ({ file, code, message }))).toEqual([{
       file: join(fx.dir, 'src/components/Count.ts'),
-      code: 2307,
-      message: 'Cannot find module \'@/components/Count\' or its corresponding type declarations.',
+      code: 2303,
+      message: 'Circular definition of import alias \'missing\'.',
     }])
     expect(existsSync(join(fx.dir, 'src/components'))).toBe(false)
   }

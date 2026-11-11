@@ -7,7 +7,7 @@ import { diagnosticRegressions, offsetOfPosition, posToLineCol } from 'ripide-ap
 import { URI } from 'vscode-uri'
 import { createVueService, vueProjectConfigs, withFilteredConsoleWarn, workspaceEditToChanges, workspaceRelativePath } from './service.ts'
 import { hasVueFilesContaining, listVueFiles, listVueFilesContaining } from './vue-files.ts'
-import { rewriteTemplateReferences } from './vue-template.ts'
+import { hyphenateVueName, parseVueTemplateAst, rewriteTemplateReferences } from './vue-template.ts'
 
 export { hasVueFilesContaining }
 
@@ -42,11 +42,13 @@ export async function applyVueRename(
             return
           const selected = editsByUri.get(uri) ?? new Map<string, LspTextEdit>()
           for (const edit of edits) {
+            const source = vue.read(vue.uriToFile(URI.parse(uri)))
+            const replacement = source === undefined ? edit : preserveTagCase(source, edit, from, to)
             const key = JSON.stringify(edit.range)
             const existing = selected.get(key)
-            if (existing && existing.newText !== edit.newText)
+            if (existing && existing.newText !== replacement.newText)
               throw new Error(`ripide: Vue rename sites disagree on edits for ${uri}.`)
-            selected.set(key, edit)
+            selected.set(key, replacement)
           }
           editsByUri.set(uri, selected)
         }
@@ -98,6 +100,31 @@ export async function applyVueRename(
     })
   }
   return [...byPath.values()]
+}
+
+/** Vue 3.3.14 can return PascalCase edits for authored kebab-case component tags. */
+function preserveTagCase(source: string, edit: LspTextEdit, from: string, to: string): LspTextEdit {
+  if (edit.newText !== to || !/^[A-Z]/.test(from))
+    return edit
+  const start = offsetOfPosition(source, edit.range.start)
+  const end = offsetOfPosition(source, edit.range.end)
+  const kebab = hyphenateVueName(from)
+  if (source.slice(start, end) !== kebab)
+    return edit
+  const tags = [parseVueTemplateAst(source)]
+  while (tags.length) {
+    const node = tags.pop()
+    if (!node)
+      continue
+    if (node.type === 1 && node.tag === kebab) {
+      const open = node.loc.start.offset + 1
+      const close = node.loc.source.lastIndexOf(`</${kebab}`)
+      if (start === open || (close >= 0 && start === node.loc.start.offset + close + 2))
+        return { ...edit, newText: hyphenateVueName(to) }
+    }
+    tags.push(...node.children ?? [])
+  }
+  return edit
 }
 
 /** Volar preserves a re-export's public name when renaming its provider. */

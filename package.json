@@ -18,7 +18,7 @@
     "url": "https://github.com/harlan-zw/ripide/issues"
   },
   "engines": {
-    "node": ">=22.13"
+    "node": ">=24"
   },
   "scripts": {
     "build": "pnpm -r --filter './packages/*' run build",
@@ -29,7 +29,7 @@
     "dev:prepare": "pnpm -r --filter './packages/*' run dev:prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "pnpm --filter ripide-api exec tsc --noEmit --project ../../tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke:package": "node --experimental-strip-types scripts/smoke-package.ts",
@@ -48,7 +48,7 @@
     "@types/picomatch": "^4.0.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@typescript/native": "npm:typescript@7.0.2",
+    "@typescript/native": "npm:typescript@7.1.0-beta",
     "@vue/compiler-sfc": "^3.5.44",
     "babel-preset-solid": "^1.9.16",
     "bumpp": "^12.3.0",
