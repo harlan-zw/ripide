@@ -26,13 +26,35 @@ process.stdout.write('disposed\\n')
   finally { fx.cleanup() }
 })
 
-it('rejects pending requests when the server is disposed', async () => {
+it.each(['diagnostics', 'snapshot verification'])('rejects pending %s when the server is disposed', async (operation) => {
   const fx = makeFixture({ 'value.ts': 'export const value = 1\n' })
   const server = await startTsServer(fx.dir)
   try {
-    const diagnostics = server.diagnostics([join(fx.dir, 'value.ts')])
+    const files = [join(fx.dir, 'value.ts')]
+    const diagnostics = operation === 'diagnostics' ? server.diagnostics(files) : server.compareDiagnostics([], files)
     server.dispose()
     await assert.rejects(diagnostics, /TypeScript server disposed/)
+  }
+  finally {
+    server.dispose()
+    fx.cleanup()
+  }
+})
+
+it('snapshot verification retains the selected generated project options', async () => {
+  const fx = makeFixture({
+    'deck/.nuxt/tsconfig.app.json': JSON.stringify({
+      compilerOptions: { strictNullChecks: true, noEmit: true },
+      files: ['../consumer.ts'],
+    }),
+    'deck/consumer.ts': 'export const value: string = "valid"\n',
+  }, false)
+  const server = await startTsServer(fx.dir, { tsconfig: 'deck/.nuxt/tsconfig.app.json' })
+  try {
+    const path = join(fx.dir, 'deck/consumer.ts')
+    const regressions = await findRegressions(server, [{ path, rel: 'deck/consumer.ts', before: fx.read('deck/consumer.ts'), after: 'export const value: string = null\n' }], [path])
+    assert.deepEqual(regressions.map(({ file, code }) => ({ file, code })), [{ file: path, code: 2322 }])
+    assert.equal(server.textOf(path), fx.read('deck/consumer.ts'))
   }
   finally {
     server.dispose()
@@ -98,7 +120,7 @@ it('findRegressions reports errors introduced by in-memory changes only', async 
   }
 })
 
-it('findRegressions keeps the pushed overlay across repeated pulls', async () => {
+it('findRegressions checks proposed edits without changing the live server', async () => {
   const fx = makeFixture({
     'a.ts': 'export function add(n: number): number { return n + 1 }\n',
     'b.ts': 'import { add } from \'./a.ts\'\nexport const r: number = add(2)\n',
@@ -108,9 +130,28 @@ it('findRegressions keeps the pushed overlay across repeated pulls', async () =>
     const a = join(fx.dir, 'a.ts')
     const b = join(fx.dir, 'b.ts')
     const breaking = [{ path: a, rel: 'a.ts', before: fx.read('a.ts'), after: 'export function add(n: number): string { return String(n) }\n' }]
-    await findRegressions(server, breaking, [a, b])
+    const regressions = await findRegressions(server, breaking, [a, b])
+    assert.deepEqual(regressions.map(({ file, code }) => ({ file, code })), [{ file: b, code: 2322 }])
+    assert.equal(server.textOf(a), breaking[0]!.before)
     const again = await server.diagnostics([b])
-    assert.equal(again.get(b)?.length, 1, 'a second pull must still see the overlay, not the on-disk text')
+    assert.deepEqual(again.get(b), [])
+  }
+  finally {
+    server.dispose()
+    fx.cleanup()
+  }
+})
+
+it('snapshot verification retains nested type error explanations', async () => {
+  const before = 'interface Expected { child: { required: string } }\nconst actual = { child: { required: "valid" } }\nexport const value: Expected = actual\n'
+  const after = before.replace('required: "valid"', 'required: 1')
+  const fx = makeFixture({ 'value.ts': before })
+  const server = await startTsServer(fx.dir)
+  try {
+    const path = join(fx.dir, 'value.ts')
+    const regressions = await findRegressions(server, [{ path, rel: 'value.ts', before, after }], [path])
+    assert.equal(regressions.length, 1)
+    assert.match(regressions[0]!.message, /Type 'number' is not assignable to type 'string'/)
   }
   finally {
     server.dispose()

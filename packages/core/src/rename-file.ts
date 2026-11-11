@@ -183,18 +183,9 @@ export async function verifyFileRename(
     return []
 
   const changes: FileChange[] = [...consumerTsChanges]
-  // willRenameFiles resolves the original imports through the configured project.
-  // Keep its exact consumer replacements so aliases need no second resolver.
-  const renamedSpecifiers = moveIsTs
-    ? await server.willRenameFile(oldAbs, newAbs)
-    : new Map<string, LspTextEdit[]>()
   if (moveIsTs) {
     const oldText = readFileSync(oldAbs, 'utf8')
-    // Model the move as two overlays: the old path empties out, the new path
-    // appears with the post-move content. Nothing touches disk. The server
-    // checks the new file's own content in memory, but module resolution
-    // from consumers only sees disk, so their "cannot find module" for the
-    // new path is expected and filtered below. Everything else stays.
+    // Snapshot filesystem layers resolve imports against the proposed destination.
     changes.push({ path: oldAbs, rel: relative(cwd, oldAbs), before: oldText, after: '' })
     changes.push({ path: newAbs, rel: relative(cwd, newAbs), before: '', after: selfChange?.after ?? oldText })
   }
@@ -203,8 +194,7 @@ export async function verifyFileRename(
     : [...(moveIsTs ? [newAbs] : []), ...consumerTsChanges.map(c => c.path)]
   const regressions = await findRegressions(server, changes, files, verification.typescript)
   const kept = regressions.filter(r => r.file !== oldAbs
-    && !isUnresolvedNewPath(r, newAbs)
-    && !isUnresolvedRenamedSpecifier(r, newAbs, renamedSpecifiers)
+    && (moveIsTs || !isUnresolvedNewPath(r, newAbs))
     && !(r.code === CANNOT_FIND_MODULE_CODE && consumerTsChanges.some(change => change.path === r.file)
       && isPlannedImportTarget(r.file, MODULE_IN_MESSAGE_RE.exec(r.message)?.[1] ?? '')))
   verification.ignore('typescript', regressions.length - kept.length)
@@ -213,15 +203,6 @@ export async function verifyFileRename(
 
 const CANNOT_FIND_MODULE_CODE = 2307
 const MODULE_IN_MESSAGE_RE = /Cannot find module '([^']+)'/
-
-function isUnresolvedRenamedSpecifier(regression: Regression, newAbs: string, edits: Map<string, LspTextEdit[]>): boolean {
-  if (regression.code !== CANNOT_FIND_MODULE_CODE || regression.file === newAbs)
-    return false
-  const specifier = MODULE_IN_MESSAGE_RE.exec(regression.message)?.[1]
-  if (!specifier)
-    return false
-  return edits.get(regression.file)?.some(edit => edit.newText.replace(/^(['"])(.*)\1$/, '$2') === specifier) ?? false
-}
 
 function isUnresolvedNewPath(regression: Regression, newAbs: string): boolean {
   if (regression.code !== CANNOT_FIND_MODULE_CODE)
