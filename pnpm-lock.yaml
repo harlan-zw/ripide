@@ -106,11 +106,11 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@babel/core@7>semver': ^7.7.4
+  '@babel/helper-compilation-targets@7>semver': ^7.7.4
   '@volar/language-core': 2.4.30
   '@volar/language-service': 2.4.30
   '@volar/typescript': 2.4.30
-  '@babel/core@7>semver': ^7.7.4
-  '@babel/helper-compilation-targets@7>semver': ^7.7.4
   micromark-extension-math>katex: ^0.19.0
   volar-service-pug: 0.0.70
 
@@ -165,7 +165,7 @@ importers:
         version: 16.4.2(@babel/core@8.0.7)(@types/node@26.6.5)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       obuild:
         specifier: ^0.4.45
-        version: 0.4.45(@typescript/typescript6@6.0.2)(@vue/language-core@3.3.12)(jiti@2.7.0)(magicast@0.5.5)
+        version: 0.4.45(@typescript/typescript6@6.0.2)(@volar/typescript@2.4.30(@typescript/typescript6@6.0.2))(@vue/language-core@3.3.12)(jiti@2.7.0)(magicast@0.5.5)
       octane:
         specifier: 0.14.0
         version: 0.14.0(@typescript-eslint/types@8.69.0)(@typescript/typescript6@6.0.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vite@8.3.3(@types/node@26.6.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.8.4))
@@ -3375,8 +3375,8 @@ packages:
     peerDependencies:
       seroval: ^1.0
 
-  seroval@1.6.8:
-    resolution: {integrity: sha512-HlSgSAkTk4EqHcje1ptJjfZi1YDv5KbhVJ/d3P7T/nAXua2VmDu+AKDX5VTdFfZf48nDkWB2TKYt0DrCSa+3wg==}
+  seroval@1.6.12:
+    resolution: {integrity: sha512-CqbIVfk/7GL3ITwZI55lcPbpQbjHZ2DD5cUj4iH7E9YsCfHNJV1mx7yNp86Z84w5IpmkZZS/2s5vPOWmVWSdQg==}
     engines: {node: '>=10'}
 
   sharp@0.35.5:
@@ -6481,7 +6481,7 @@ snapshots:
 
   obug@3.0.0: {}
 
-  obuild@0.4.45(@typescript/typescript6@6.0.2)(@vue/language-core@3.3.12)(jiti@2.7.0)(magicast@0.5.5):
+  obuild@0.4.45(@typescript/typescript6@6.0.2)(@volar/typescript@2.4.30(@typescript/typescript6@6.0.2))(@vue/language-core@3.3.12)(jiti@2.7.0)(magicast@0.5.5):
     dependencies:
       c12: 4.0.0-rc.2(jiti@2.7.0)(magicast@0.5.5)
       consola: 3.4.2
@@ -6491,7 +6491,7 @@ snapshots:
       nf3: 0.4.2
       pathe: 2.0.3
       rolldown: 1.2.14
-      rolldown-plugin-dts: 0.28.8(@typescript/typescript6@6.0.2)(@vue/language-core@3.3.12)(rolldown@1.2.14)
+      rolldown-plugin-dts: 0.28.8(@typescript/typescript6@6.0.2)(@volar/typescript@2.4.30(@typescript/typescript6@6.0.2))(@vue/language-core@3.3.12)(rolldown@1.2.14)
       tinyglobby: 0.2.17
     transitivePeerDependencies:
       - '@typescript/native-preview'
@@ -6731,7 +6731,7 @@ snapshots:
 
   resolve-pkg-maps@1.0.0: {}
 
-  rolldown-plugin-dts@0.28.8(@typescript/typescript6@6.0.2)(@vue/language-core@3.3.12)(rolldown@1.2.14):
+  rolldown-plugin-dts@0.28.8(@typescript/typescript6@6.0.2)(@volar/typescript@2.4.30(@typescript/typescript6@6.0.2))(@vue/language-core@3.3.12)(rolldown@1.2.14):
     dependencies:
       dts-resolver: 3.0.0
       get-tsconfig: 5.0.0-beta.6
@@ -6741,6 +6741,7 @@ snapshots:
       yuku-codegen: 0.19.0
       yuku-parser: 0.19.0
     optionalDependencies:
+      '@volar/typescript': 2.4.30(@typescript/typescript6@6.0.2)
       '@vue/language-core': 3.3.12
       typescript: '@typescript/typescript6@6.0.2'
     transitivePeerDependencies:
@@ -6827,11 +6828,11 @@ snapshots:
 
   semver@7.8.5: {}
 
-  seroval-plugins@1.6.8(seroval@1.6.8):
+  seroval-plugins@1.6.8(seroval@1.6.12):
     dependencies:
-      seroval: 1.6.8
+      seroval: 1.6.12
 
-  seroval@1.6.8: {}
+  seroval@1.6.12: {}
 
   sharp@0.35.5(@types/node@26.6.5):
     dependencies:
@@ -6878,8 +6879,8 @@ snapshots:
   solid-js@1.9.17:
     dependencies:
       csstype: 3.2.3
-      seroval: 1.6.8
-      seroval-plugins: 1.6.8(seroval@1.6.8)
+      seroval: 1.6.12
+      seroval-plugins: 1.6.8(seroval@1.6.12)
 
   source-map-js@1.2.2: {}
 
