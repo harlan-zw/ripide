@@ -43,7 +43,7 @@ export function supervisorDeadline(manifest: Manifest): number {
   // Allow recorder shutdown and independent grading beyond each registered command timeout.
   const deadline = 60000 + commands * (manifest.timeoutMs + 10000)
   if (!Number.isSafeInteger(deadline))
-    throw new Error('The supervisor deadline exceeds the supported integer range.')
+    throw new TypeError('The supervisor deadline exceeds the supported integer range.')
   return deadline
 }
 

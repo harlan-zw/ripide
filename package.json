@@ -40,8 +40,8 @@
     "release:publish": "node --experimental-strip-types scripts/release.ts publish"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.5.1",
-    "@babel/core": "^8.0.7",
+    "@antfu/eslint-config": "^10.0.0",
+    "@babel/core": "^8.0.10",
     "@tsrx/content-mapper": "0.1.2",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^26.6.5",
@@ -54,9 +54,9 @@
     "bumpp": "^12.3.0",
     "citty": "^0.2.2",
     "eslint": "^10.13.0",
-    "next": "^16.4.2",
+    "next": "^16.4.3",
     "obuild": "^0.4.45",
-    "octane": "0.14.0",
+    "octane": "0.16.4",
     "publint": "^0.3.25",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
