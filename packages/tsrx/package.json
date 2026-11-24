@@ -30,7 +30,7 @@
     "octane": ">=0.9.0"
   },
   "dependencies": {
-    "@tsrx/content-mapper": "0.1.2",
+    "@tsrx/content-mapper": "0.1.6",
     "typescript-native": "npm:typescript@7.1.0-beta"
   },
   "devDependencies": {
